@@ -1,0 +1,90 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            Int             @id @default(autoincrement())
+  name          String          @unique @db.VarChar(50)
+  ClientUser    ClientUser[]
+  UserRole      UserRole[]
+  ClientRealtor ClientRealtor[]
+
+  @@map("users")
+}
+
+model Client {
+  id               Int                @id @default(autoincrement())
+  name             String             @unique @db.VarChar(50)
+  ClientUser       ClientUser[]
+  ClientRealtor    ClientRealtor[]
+  ClientEnterprise ClientEnterprise[]
+
+  @@map("clients")
+}
+
+model ClientUser {
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId   Int
+  client   Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  clientId Int
+
+  @@id([userId, clientId])
+  @@map("client_users")
+}
+
+model Role {
+  id       Int        @id @default(autoincrement())
+  name     String     @unique @db.VarChar(30)
+  UserRole UserRole[]
+
+  @@map("roles")
+}
+
+model UserRole {
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId Int
+  role   Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  roleId Int
+
+  @@id([userId, roleId])
+  @@map("user_roles")
+}
+
+model ClientRealtor {
+  id                       Int                        @id @default(autoincrement())
+  client                   Client                     @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  clientId                 Int
+  user                     User                       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId                   Int
+  ClientEnterpriseRealtors ClientEnterpriseRealtors[]
+
+  @@map("client_realtors")
+}
+
+model ClientEnterprise {
+  id                       Int                        @id @default(autoincrement())
+  client                   Client                     @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  clientId                 Int
+  name                     String
+  ClientEnterpriseRealtors ClientEnterpriseRealtors[]
+
+  @@map("client_enterprises")
+}
+
+model ClientEnterpriseRealtors {
+  clientEnterprise   ClientEnterprise @relation(fields: [clientEnterpriseId], references: [id])
+  clientEnterpriseId Int
+  clientRealtor      ClientRealtor    @relation(fields: [clientRealtorId], references: [id])
+  clientRealtorId    Int
+
+  @@id([clientEnterpriseId, clientRealtorId])
+  @@map("client_enterprise_realtors")
+}
